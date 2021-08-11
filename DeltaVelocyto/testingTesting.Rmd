@@ -1,0 +1,170 @@
+---
+title: "testing"
+author: "Sam"
+date: "28/07/2021"
+output: html_document
+---
+
+```{r}
+set.seed(42)
+x <- seq(1, 100, by = 2)
+d2 <- data.frame(y = c(2 + (0.5 * x) + rnorm(50),
+                       5 + (1.5 * x) + rnorm(50)),
+                 x = x,
+                 g = rep(c("A","B"), each = 50))
+m2 <- lm(y ~ x * g, data = d2)
+m2.null <- lm(y ~ x + g, data = d2)
+anova(m2.null, m2)
+coef(m2)
+
+summary(m2)
+```
+```{r}
+
+  ppMs1 = ladata1$Ms[gene, which(ladata1$Ms[gene,] != 0)]
+  ppMu1 = ladata1$Mu[gene, which(ladata1$Ms[gene,] != 0)]
+  data1 = as.data.frame(cbind(ppMu1, ppMs1))
+  
+  ppMs2 = ladata2$Ms[gene, which(ladata2$Ms[gene,] != 0)]
+  ppMu2 = ladata2$Mu[gene, which(ladata2$Ms[gene,] != 0)]
+  data2 = as.data.frame(cbind(ppMu2, ppMs2))
+  
+  colnames(data1) = c("y", "x")
+  colnames(data2) = c("y", "x")
+
+  combined = rbind(data1, data2)
+  
+  A = rep("A", length(ppMs1))
+  B = rep("B", length(ppMs2))
+  g = c(A,B)
+  d2 = cbind(combined,g)
+  
+  
+  m2 <- lm(y ~ x * g, data = d2)
+  m2.null <- lm(y ~ x + g, data = d2)
+  anova(m2.null, m2)
+  coef(m2)
+  
+```
+
+```{r}
+#disease
+ladata1 = DeltaVelocyto::read("/Users/samtoussi/Desktop/DeltaVelocyto/TestData/S1")
+#control
+ladata2 = DeltaVelocyto::read("/Users/samtoussi/Desktop/DeltaVelocyto/TestData/S3")
+
+ladata1 = DeltaVelocyto::filter_and_norm(ladata1)
+ladata2 = DeltaVelocyto::filter_and_norm(ladata2)
+
+ladata1 = DeltaVelocyto::moment(ladata1)
+ladata2 = DeltaVelocyto::moment(ladata2)
+
+slope = DeltaVelocyto::lm(ladata, "SYT1")
+slope
+
+
+
+#TESTING!!
+
+gene = "SYT1"
+
+ppMs = ladata1$Ms[gene, which(ladata1$Ms[gene,] != 0)]
+ppMu = ladata1$Mu[gene, which(ladata1$Ms[gene,] != 0)]
+
+#Fitting a linear model
+lmGene = stats::lm(ppMu~ppMs, data = as.data.frame(cbind(ppMs, ppMu)))
+summary(lmGene)
+
+ #TESTING!!
+  
+  
+#we want something like this in the end
+deltaVelocity = DeltaVelocyto::delta(ladata1, ladata2)
+
+
+which(rownames(ladata[["Mu"]]) == "SYT1")
+which(rownames(ladata[["Mu"]]) == "AQP4")
+
+plot(ladata[["Ms"]][674,],ladata[["Mu"]][674,], pch=19, cex = 0.5)
+plot(ladata[["Ms"]][855,],ladata[["Mu"]][855,], pch=19, cex = 0.5)
+
+```
+
+```{r}
+x = testingFunction(1000)
+y = prcomp(x)$x
+z = DeltaVelocyto::getPCA(x)
+
+y$x - getPCA(x)
+
+test = mmutilR::rcpp_mmutil_pca(mtx_file = testMatrix)
+rank(x)
+```
+
+```{r}
+x = matrix(1:9, nrow = 3, ncol = 3)
+x
+```
+
+```{r}
+ options(stringsAsFactors = FALSE)
+ ## combine two different mu matrices
+ set.seed(1)
+ rr <- rgamma(1000, 1, 1) # 1000 cells
+ mm.1 <- matrix(rgamma(100 * 3, 1, 1), 100, 3)
+ mm.1[1:10, ] <- rgamma(5, 1, .1)
+ mm.2 <- matrix(rgamma(100 * 3, 1, 1), 100, 3)
+ mm.2[11:20, ] <- rgamma(5, 1, .1)
+ mm <- cbind(mm.1, mm.2)
+ dat <- mmutilR::rcpp_mmutil_simulate_poisson(mm, rr, "sim_test")
+ rows <- read.table(dat$row)$V1
+ cols <- read.table(dat$col)$V1
+ ## marker feature
+ markers <- list(
+   annot.1 = list(
+     ct1 = rows[1:10],
+     ct2 = rows[11:20]
+   )
+ )
+ ## annotation on the MTX file
+ out <- mmutilR::rcpp_mmutil_annotate_columns(
+        row_file = dat$row, col_file = dat$col,
+        mtx_file = dat$mtx, pos_labels = markers)
+ annot <- out$annotation
+ ## prepare column to individual
+ .ind <- read.table(dat$indv, col.names = c("col", "ind"))
+ .annot.ind <- .ind$ind[match(annot$col, .ind$col)]
+ ## aggregate
+ agg <- mmutilR::rcpp_mmutil_aggregate(dat$mtx, dat$row, dat$col,
+         annot$col, .annot.ind, annot$argmax, c("ct1", "ct2"))
+ ## show average marker features
+ print(round(agg$mean[1:20, ]))
+ unlink(list.files(pattern = "sim_test"))
+ ## Case-control simulation
+ .sim <- mmutilR::simulate_gamma_glm()
+ .dat <- mmutilR::rcpp_mmutil_simulate_poisson(.sim$obs.mu,
+                                              .sim$rho,
+                                              "sim_test")
+ ## find column-wise annotation
+ .annot <- read.table(.dat$indv,
+                      col.names = c("col", "ind"))
+ .annot$trt <- .sim$W[match(.annot$ind, 1:length(.sim$W))]
+ .annot$ct <- "ct1"
+ ## simple PCA
+ pca <- mmutilR::rcpp_mmutil_pca(.dat$mtx, 500)
+
+testing <- mmutilR::rcpp_mmutil_aggregate(mtx_file = .dat$mtx,
+                                       row_file = .dat$row,
+                                       col_file = .dat$col,
+                                       r_cols = .annot$col,
+                                       r_indv = .annot$ind,
+                                       r_annot = .annot$ct,
+                                       r_lab_name = "ct1",
+                                       r_trt = .annot$trt,
+                                       r_V = .pca$V,
+                                       knn = 50,
+                                       IMPUTE_BY_KNN = TRUE)
+
+
+head(.dat$mtx)
+```
